@@ -2,7 +2,7 @@
 title: "macroAnalysis_YourNAME"
 subtitle: "BIO 131 Macroinvertebrate Data Analysis"
 author: "Your Name"
-date: "November , 2025"
+date: "March , 2026"
 format: typst
 ---
 
@@ -10,17 +10,18 @@ format: typst
 
 Keep all of your analysis in this same .qmd file (copy script templates into code chunks in this file) and keep all the associated files in the project folder. Make sure the project name is showing in the upper right of the RStudio window.
 
-Before you start doing anything else, use the "Save as" function to make a copy of this file with your name replacing the YourName (example: macroanalysis_SophiaSmith.qmd).
+Before you start doing anything else, use the "Save as" function to make a copy of this file with your name replacing the YourName (example: macroAnalysis_SophiaSmith.qmd).
 
 Update the YAML above (lines 1-7) :
 
--   **title**: replace YourName in the title with your name (no spaces). This will ensure that you name your PDF file that you make later correctly
+-   **title**: replace YourName in the title with your name (no spaces). This will ensure that your PDF file gets named correctly when you render this file
 -   **author**: put your name here with spaces
 -   **date**: update with today's date
 
 ## Load packages
 
 As always, we will begin by loading all the necessary packages. Run the code chunk below. (note: if you are working on your own desktop version of R and RStudio, make sure that all the packages below have been installed before you run the code to load the packages. If you can't get a package to install, them use the Smith Server)
+
 
 ```{r}
 #| label: setup
@@ -33,6 +34,7 @@ library(ggbeeswarm) ## for jittering points (you can remove this is you did not 
 library(ggpubr) ## for making QQ-plots and changing the color palette
 library(corrplot) ## for making correlation plots
 library(rstatix) ##for effect sizes
+library(patchwork) ## for joining graphs
 
 
 ```
@@ -86,7 +88,7 @@ master.taxa_metadata <- read_csv("data/master.taxa_variable_metadata.csv",
 
 **Reminders:**
 
-To look at the structure of a data frame that was just imported, click on the object name (=name of the data frame) in the Global Environment as a shortcut to using the View() function, and click on the blue arrow next to the data frame in the Global Environment to see all the variable names and types.
+To look at the structure of a data frame that was just imported, click on the object name (=name of the data frame) in the Global Environment as a shortcut to using the View() function, and click on the blue arrow next to the data frame in the Global Environment to see all the variable names and types. If you prefer, you can also type `View(macros)` in the console (change the name in the parentheses to match the dataset you want to view).
 
 A metadata file for each data table was also imported that gives some brief information about the variables. A text file (with .txt file extension) for each data table is also included in the "data" folder that has a more full description including how to cite the data, what each variable represents, and how measurements were made using what tools.
 
@@ -244,25 +246,16 @@ First, use what we have learned in this class to choose a graph type that will e
 location.plot <- ggpubr::ggpar(___, palette = c("#EE7733", "#0077BB"))
 location.plot
 
-
-# save the graph
-# recommended to use.png or .jpg file types
-ggsave(filename = "results/location.plot.png",  
-       plot = location.plot,   #put the object name of your plot here
-       height = 5, width = 8, units = "in", 
-       dpi = 300)
-
 ```
 
-Note that we used the `ggsave()` function to save the graph object you just made to your results folder. See the "export.txt" file in the results folder if you need a reminder of how to export the graph file from the Smith server.
-
-Make sure to insert your graph into your results slides and write a figure legend in the speaker notes (see the assignment handout for more details).
+Does it look like the density of your organism is different or similar upstream vs downstream of Paradise Pond? Let's do an effect size test to see if the density is significantly impacted by location.
 
 ### Calculate the effect size of location
 
-Next, calculate the appropriate effect size. Go to the **script_templates folder** and then select the **inference** subfolder.
+To calculate the appropriate effect size. Go to the **script_templates folder** and then select the **inference** subfolder.
 
-You can refer back to the dataviz Quarto document (or your rendered PDF version) to help remind you about how to choose the correct effect size test. Copy all the code from the appropriate script template and paste it below.
+You can refer back to the dataviz project and look at the effectSize_YourNamte.qmd QUarto document (or your rendered PDF version) to help remind you about how to choose the correct effect size test. Copy all the code from the appropriate script template and paste it below.
+
 
 ```{r}
 #| label: effect size   
@@ -276,7 +269,95 @@ You can refer back to the dataviz Quarto document (or your rendered PDF version)
 
 ```
 
-Include your effect size results on your slide with the graph.
+## Record Effect Size Results
+
+From the effect size test output, write the following down in your lab notebook so you will have it all to include in your results:
+
+-   what type of effect size you calculated (Cohen's d, Cohen's d for Welch test, or Wilcoxon effect size)
+
+-   effect size (labeled **effsize** in the results table, round this to 2 significant figures)
+
+-   95% confidence interval (labeled **conf.low** & **conf.high**, round this to 2 significant figures)
+
+-   magnitude of the effect (labeled **magnitude**)
+
+-   sample size for each location (labeled **n1** & **n2** - make sure you also note which location is group1 and which is group2 so you know which sample size goes with which location)
+
+
+## Graph Effect Size Results
+
+Graphing the results of the effect size test makes it easier to understand and interpret. Thus, we will next graph your standardized effect size and the bootstrapped 95% confidence interval that you just calculated above. You don't need to change anything in the code below, just run it.
+
+```{r}
+#| label: effect size graph
+
+#graph the results to make it easier to visualize
+effect.plot <- effectSize.results  |>    
+  ggplot(aes(
+    x = .y., 
+    y = effsize)) +
+  
+  geom_pointrange(aes(ymin = conf.low, ymax = conf.high),
+                  size = 1, # Adjust point size
+                  linewidth = 0.8, # Adjust line thickness
+                  color = "forestgreen") + # Set color
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") + # Add a reference line at 0
+  
+  #nicer axis labels
+  xlab("") +
+  ylab("Standardized Effect Size") +
+  
+  #to set the limits of the y-axis
+  #you can replace these NA values as needed
+  coord_cartesian(ylim = c(NA, NA)) +
+  
+  #additional formatting
+  theme_classic(base_size = 14)  +  #sets the font size
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank()) +
+  theme(legend.position = "none")   #controls legend/key
+
+effect.plot
+
+
+```
+
+In your results, make sure to talk about the magnitude of the effect (negligible, small, moderate, large? See `effectSize.results` output from the previous code chunk) and whether the effect was significantly different from zero or not (using the 95% CI). Does the 95% CI cross the dashed zero line? If the 95% CI includes zero, that means you cannot say that the effect size was significantly different from zero. If the 95% CI does not cross or touch the zero line, then you can say the effect was significant.
+
+
+## Join Original Graph and Effect Size Results
+
+Now let's make one image that joins your original graph with the effect size results graph together.
+
+```{r}
+#| label: data plus effect size graph
+
+patch.plot <- location.plot + effect.plot +
+  plot_layout(widths = c(4, 1))
+
+patch.plot 
+
+# save the graph
+# recommended to use.png or .jpg file types
+ggsave(filename = "results/LocationWithEffectSize.png",  
+       plot = patch.plot,   #put the object name of your plot here
+       height = 5, width = 8, units = "in", 
+       dpi = 300)
+
+
+```
+
+The above code will save your new joined graph that includes the density by location graph along with the effect size results. The name if this file is "LocationWithEffectSize.png", and it will appear in the "results" subfolder of the main project folder under the Files tab in the lower right quadrant of this window.
+
+If you are working on the Smith server, you will first need to export this file to your computer:
+
+-   Check the box next to the "LocationWithEffectSize.png" file (find this in the results subfolder)
+
+-   Go to the "More" menu with the gear icon and click the drop down arrow
+
+-   Select "Export" and then save the file to your computer
+
+Make sure to insert this combined graph into your results slides and write a figure legend in the speaker notes (see the assignment handout for more details).
 
 # Correlation with Environmental Variables
 
@@ -342,13 +423,23 @@ dev.off()
 
 ```
 
-Here we used a few functions from the `corrplot` package to do multiple correlation tests (here we are using Pearson's correlation coefficient, *r*). The output from the `corrplot` function shows each variable compared to each of the other variables. We also used `corrplot::cor.mtest` to determine which correlation coefficients were significant different from zero. The tests where there was not a significant correlation ("p\>0.05") are left blank (not shown). The value shown in black within each square is Pearson's correlation coefficient (*r*). The colored ellipses in each square represent the direction of the relationship (blue and tilted to the right is a positive relationship, red and tilted to the left is a negative relationship) and the intensity of the color and shape of the ellipse indicate the strength of the correlation (darker colors and skinnier ellipses are stronger correlations).
+Here we used a few functions from the `corrplot` package to do multiple correlation tests (here we are using Pearson's correlation coefficient, *r*). The output from the `corrplot` function shows each variable compared to each of the other variables. We also used `corrplot::cor.mtest` to determine which correlation coefficients were significant different from zero. The tests where there was not a significant correlation ("p>0.05") are left blank (not shown). The value shown in black within each square is Pearson's correlation coefficient (*r*) for the varialbe in that particular column vs the variable in that row. The colored ellipses in each square represent the direction of the relationship (blue and tilted to the right is a positive relationship, red and tilted to the left is a negative relationship) and the intensity of the color and shape of the ellipse indicate the strength of the correlation (darker colors and skinnier ellipses are stronger correlations).
 
 Note that the code above will save a PNG file of this plot in your results folder. This PNG file may be easier to look at and zoom into rather than looking at the direct output.
 
 First look at the density value for your taxonomic group which should be in the first row. Find the environmental variable(s) that have the strongest correlation to include in your results.
 
 You should also note the environmental variables that are strongly correlated with each other. Usually, water temperature (wTemp) and dissolved oxygen (DO) have a strong negative correlation. This is partly just physics - colder water holds more oxygen. Take note of other strong relationships among the environmental variables and see if you can think of why they might be correlated.
+
+If you are working on the Smith server, you will first need to export this file to your computer:
+
+-   Check the box next to the "cor.plot.png" file (find this in the results subfolder)
+
+-   Go to the "More" menu with the gear icon and click the drop down arrow
+
+-   Select "Export" and then save the file to your computer
+
+Make sure to insert this graph into your results slides and write a figure legend in the speaker notes (see the assignment handout for more details).
 
 ## Strongest Correlation
 
@@ -422,6 +513,18 @@ ggsave(filename = "results/strongest.cor.plot.png",
 
 ```
 
+
+If you are working on the Smith server, you will first need to export this file to your computer:
+
+-   Check the box next to the "strongest.cor.plot.png" file (find this in the results subfolder)
+
+-   Go to the "More" menu with the gear icon and click the drop down arrow
+
+-   Select "Export" and then save the file to your computer
+
+Make sure to insert this graph into your results slides and write a figure legend in the speaker notes (see the assignment handout for more details).
+
+
 # R & Package Versions and Citation Information
 
 In addition to citing journal articles and other references, in a full scientific paper you should cite what software was used for the analysis.
@@ -462,6 +565,7 @@ citation("ggbeeswarm")
 citation("ggpubr")
 citation("corrplot")
 citation("rstatix")
+citation("patchwork")
 
 ```
 
