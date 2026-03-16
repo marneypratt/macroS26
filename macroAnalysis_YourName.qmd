@@ -22,7 +22,6 @@ Update the YAML above (lines 1-7) :
 
 As always, we will begin by loading all the necessary packages. Run the code chunk below. (note: if you are working on your own desktop version of R and RStudio, make sure that all the packages below have been installed before you run the code to load the packages. If you can't get a package to install, them use the Smith Server)
 
-
 ```{r}
 #| label: setup
 #| message: false
@@ -38,6 +37,8 @@ library(patchwork) ## for joining graphs
 
 
 ```
+
+We will go back to the slideshow and talk about how the data were collected before looking at the data.
 
 ## Import Data
 
@@ -198,7 +199,7 @@ ggpubr::ggqqplot(
 
 ```
 
-Often, the density value is very skewed - are the points lining up close to the line for your data?
+Often, the density value is very skewed - are the points lining up close to the line for your data? Are the points linear or wavy/curved?
 
 Let's compare the untransformed data above to density values that are log-transformed to see if that helps
 
@@ -212,7 +213,7 @@ ggpubr::ggqqplot(
 
 ```
 
-While the points may not line up perfectly on the line, does the log-transformation make the data more normally distributed? If so, then **make sure to graph density on a log-scaled axis**.
+While the points may not line up perfectly on the line, does the log-transformation make the data more normally distributed? If so, then **make sure to graph density on a log-scaled axis** going forward.
 
 ## Visualization & Effect Size
 
@@ -254,7 +255,7 @@ Does it look like the density of your organism is different or similar upstream 
 
 To calculate the appropriate effect size. Go to the **script_templates folder** and then select the **inference** subfolder.
 
-You can refer back to the dataviz project and look at the effectSize_YourNamte.qmd QUarto document (or your rendered PDF version) to help remind you about how to choose the correct effect size test. Copy all the code from the appropriate script template and paste it below.
+You can refer back to the dataviz project and look at the effectSize_YourName.qmd Quarto document (or your rendered PDF version) to help remind you about how to choose the correct effect size test. Copy all the code from the appropriate script template and paste it below.
 
 
 ```{r}
@@ -327,7 +328,7 @@ In your results, make sure to talk about the magnitude of the effect (negligible
 
 ## Join Original Graph and Effect Size Results
 
-Now let's make one image that joins your original graph with the effect size results graph together.
+Now let's use `patchwork` to make one image that joins your original graph with the effect size results graph together.
 
 ```{r}
 #| label: data plus effect size graph
